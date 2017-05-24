@@ -9,7 +9,7 @@
 
 using namespace std;
 
-struct Rectangle {
+struct Polygon {
 	vector<Vec3<float>> points; //topLeft, topRight, bottomLeft, bottomRight;
 	Vec3<float> normal;
 	RGBApixel color;
@@ -29,7 +29,7 @@ struct PointLight {
 
 
 //Check if point is within polygon
-bool pointInPoly(Rectangle &obj, Vec3<float> &point) {
+bool pointInPoly(Polygon &obj, Vec3<float> &point) {
 	bool inside = false;
 	int absX = abs(obj.normal.x), absY = abs(obj.normal.y), absZ = abs(obj.normal.z);
 	//Project 3D plane into 2D by omitting dominant coordinate to maximize remaining area
@@ -63,7 +63,7 @@ bool pointInPoly(Rectangle &obj, Vec3<float> &point) {
 }
 
 //Currently Calculates Intersect with infinite plane of polygon, need to check bounds of polygon first!
-bool intersect(Rectangle &obj, Ray primaryRay, Vec3<float> &pHit) {
+bool intersect(Polygon &obj, Ray primaryRay, Vec3<float> &pHit) {
 	float denom = primaryRay.direction.dotProd(obj.normal);
 
 	if (abs(denom) > 0.0001) /*may need to fix for float point error*/ {
@@ -72,59 +72,33 @@ bool intersect(Rectangle &obj, Ray primaryRay, Vec3<float> &pHit) {
 		pHit = primaryRay.startPoint + primaryRay.direction * dist; //May be deallocated and cause pointer issues
 		return pointInPoly(obj, pHit);
 	}
-	else 
+	else
 		return false;
 }
 
-void raytrace() {
+void raytrace(Vec3<float> &camera, vector<Polygon> &objects, vector<PointLight> &lights) {
 	BMP output;
-	output.SetSize(1920, 1080);
+	output.SetSize(640, 480);
 	output.SetBitDepth(24);
-	//Camera is at origin point
-	Vec3<float> camera = Vec3<float>(0);
-
-	//Object is 1 Rectangle Plane 10 units in front in the Z direction
-	vector<Rectangle> objects(1);
-	for (int k = 0; k < objects.size(); k++){
-		Rectangle *r = &objects[k];
-		r->points = vector<Vec3<float>>(4);
-		r->points[0] = Vec3<float>(-500, 500, 10);
-		r->points[1] = Vec3<float>(500, 500, 10);
-		r->points[2] = Vec3<float>(500, -500, 1.5);
-		r->points[3] = Vec3<float>(-500, -500, 1.5);
-
-		//r->points = vector<Vec3<float>>(3);
-		//r->points[0] = Vec3<float>(-50, -10, 1.5);
-		//r->points[1] = Vec3<float>(50, -10, 5);
-		//r->points[2] = Vec3<float>(0, 75, 1.5);
-
-		r->normal = ((r->points[1] - r->points[0]).crossProd(r->points[2] - r->points[1])).normalize();
-		r->color.Red = 255;
-		r->color.Green = 0;
-		r->color.Blue = 0;
-	}
-
 
 	Vec3<float> currPixel;
 	Ray primaryRay;
 	Ray shadowRay;
-	PointLight sourceLight;
+	PointLight sourceLight = lights[0]; //currently only takes into account single light source (the first)
 	RGBApixel currColor;
-	sourceLight.location = Vec3<float>(0, 0, 0);
-	sourceLight.intensity = 2;
-	sourceLight.maxDistance = 500;
-	//Viewing plane is 1920x1080 and 2 unit in front camera in the Z direction
-	for (int j = 0; j < 1080 ; j++) {
-		for (int i = 0; i < 1920; i++) {
 
-			currPixel = Vec3<float>(i - 1920 / 2, 1080/2 - j, 2);
+	//Viewing plane is 640/480 and 1 unit in front camera in the Z direction
+	for (int j = 0; j < 480; j++) {
+		for (int i = 0; i < 640; i++) {
+
+			currPixel = Vec3<float>(i - 640 / 2, 480 / 2 - j, 1);
 			primaryRay.startPoint = camera;
 			primaryRay.direction = (currPixel - primaryRay.startPoint).normalize();
 			primaryRay.length = 100;
 
 			Vec3<float> pHit;
 			float minDist = INFINITY;
-			Rectangle *hit = NULL;
+			Polygon *hit = NULL;
 			for (int k = 0; k < objects.size(); k++) {
 				if (intersect(objects[k], primaryRay, pHit)) {
 					float dist = (camera - pHit).length();
@@ -141,11 +115,13 @@ void raytrace() {
 				bool shadowed = false;
 				for (int k = 0; k < objects.size(); k++) {
 					if (hit != &objects[k] && intersect(objects[k], shadowRay, pHit)) {
-						shadowed = true;
-						break;
+						if (shadowRay.direction.dotProd(pHit - shadowRay.startPoint) > 0.0001) {
+							shadowed = true;
+							break;
+						}
 					}
 				}
-				
+
 				if (!shadowed) {
 					float intensity = (sourceLight.maxDistance - (sourceLight.location - pHit).length()) / sourceLight.maxDistance;
 					intensity = 0 > intensity ? 0 : intensity;
@@ -162,9 +138,9 @@ void raytrace() {
 				}
 			}
 			else {
-				currColor.Red = 0;
-				currColor.Green = 0;
-				currColor.Blue = 0;
+				currColor.Red = 127;
+				currColor.Green = 127;
+				currColor.Blue = 127;
 				output.SetPixel(i, j, currColor);
 			}
 		}
@@ -174,6 +150,56 @@ void raytrace() {
 
 int main()
 {
-	raytrace();
+	int numLights, numPoly;
+	Vec3<float> camera;
+
+
+	cout << "Enter camera location (x, y, z): ";
+	cin >> camera.x;
+	cin >> camera.y;
+	cin >> camera.z;
+
+	cout << "Enter the number of polygons: ";
+	cin >> numPoly;
+	vector<Polygon> scenePolygons(numPoly);
+	for (int x = 0; x < numPoly; x++) {
+		Polygon *r = &scenePolygons[x];
+		int numPoints;
+		cout << "Enter the number of points: ";
+		cin >> numPoints;
+		r->points = vector<Vec3<float>>(numPoints);
+		for (int y = 0; y < numPoints; y++) {
+			cout << "Enter the point (x, y, z): ";
+			r->points[y] = Vec3<float>();
+			cin >> r->points[y].x;
+			cin >> r->points[y].y;
+			cin >> r->points[y].z;
+		}
+		r->normal = ((r->points[0] - r->points[1]).crossProd(r->points[2] - r->points[1])).normalize();
+		cout << "Enter the color (R, G, B): ";
+		int tmpColor;
+		cin >> tmpColor;
+		r->color.Red = tmpColor;
+		cin >> tmpColor;
+		r->color.Green = tmpColor;
+		cin >> tmpColor;
+		r->color.Blue = tmpColor;
+	}
+
+	cout << "Enter the number of lights: ";
+	cin >> numLights;
+	vector<PointLight> sceneLights(numLights);
+	for (int x = 0; x < numLights; x++) {
+		cout << "Enter Light Location (x, y, z): ";
+		cin >> sceneLights[x].location.x;
+		cin >> sceneLights[x].location.y;
+		cin >> sceneLights[x].location.z;
+		cout << "Enter Light Max Distance: ";
+		cin >> sceneLights[x].maxDistance;
+		cout << "Enter Light Intensity: ";
+		cin >> sceneLights[x].intensity;
+	}
+
+	raytrace(camera, scenePolygons, sceneLights);
 	return 0;
 }
