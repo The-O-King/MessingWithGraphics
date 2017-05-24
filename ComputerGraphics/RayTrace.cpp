@@ -1,4 +1,4 @@
-// ComputerGraphics.cpp : Defines the entry point for the console application.
+// RayTrace.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -63,12 +63,12 @@ bool pointInPoly(Polygon &obj, Vec3<float> &point) {
 }
 
 //Currently Calculates Intersect with infinite plane of polygon, need to check bounds of polygon first!
-bool intersect(Polygon &obj, Ray primaryRay, Vec3<float> &pHit) {
+bool intersect(Polygon &obj, Ray primaryRay, Vec3<float> &pHit, float &dist) {
 	float denom = primaryRay.direction.dotProd(obj.normal);
 
-	if (abs(denom) > 0.0001) /*may need to fix for float point error*/ {
+	if (denom > 1e-6) /*may need to fix for float point error*/ {
 		float num = (obj.points[0] - primaryRay.startPoint).dotProd(obj.normal);
-		float dist = num / denom;
+		dist = num / denom;
 		pHit = primaryRay.startPoint + primaryRay.direction * dist; //May be deallocated and cause pointer issues
 		return pointInPoly(obj, pHit);
 	}
@@ -87,24 +87,24 @@ void raytrace(Vec3<float> &camera, vector<Polygon> &objects, vector<PointLight> 
 	PointLight sourceLight = lights[0]; //currently only takes into account single light source (the first)
 	RGBApixel currColor;
 
-	//Viewing plane is 640/480 and 1 unit in front camera in the Z direction
+	//Viewing plane is 4x4 and 1 unit in front camera in the Z direction
 	for (int j = 0; j < 480; j++) {
 		for (int i = 0; i < 640; i++) {
-
-			currPixel = Vec3<float>(i - 640 / 2, 480 / 2 - j, 1);
+			//Convert pixel coordinate in screen space to world space
+			currPixel = Vec3<float>(4.0 * i / 640 - 2, 2 - 4.0 * j / 480, 1);
 			primaryRay.startPoint = camera;
 			primaryRay.direction = (currPixel - primaryRay.startPoint).normalize();
 			primaryRay.length = 100;
 
 			Vec3<float> pHit;
+			float currDist;
 			float minDist = INFINITY;
 			Polygon *hit = NULL;
 			for (int k = 0; k < objects.size(); k++) {
-				if (intersect(objects[k], primaryRay, pHit)) {
-					float dist = (camera - pHit).length();
-					if (dist < minDist) {
+				if (intersect(objects[k], primaryRay, pHit, currDist)) {
+					if (currDist < minDist) {
 						hit = &objects[k];
-						minDist = dist;
+						minDist = currDist;
 					}
 				}
 			}
@@ -114,16 +114,14 @@ void raytrace(Vec3<float> &camera, vector<Polygon> &objects, vector<PointLight> 
 				shadowRay.direction = (sourceLight.location - pHit).normalize();
 				bool shadowed = false;
 				for (int k = 0; k < objects.size(); k++) {
-					if (hit != &objects[k] && intersect(objects[k], shadowRay, pHit)) {
-						if (shadowRay.direction.dotProd(pHit - shadowRay.startPoint) > 0.0001) {
-							shadowed = true;
-							break;
-						}
+					if (hit != &objects[k] && intersect(objects[k], shadowRay, pHit, currDist)) {
+						shadowed = true;
+						break;
 					}
 				}
 
 				if (!shadowed) {
-					float intensity = (sourceLight.maxDistance - (sourceLight.location - pHit).length()) / sourceLight.maxDistance;
+					float intensity = (sourceLight.maxDistance - (sourceLight.location - shadowRay.startPoint).length()) / sourceLight.maxDistance;
 					intensity = 0 > intensity ? 0 : intensity;
 					currColor.Red = hit->color.Red * intensity;
 					currColor.Green = hit->color.Green * intensity;
