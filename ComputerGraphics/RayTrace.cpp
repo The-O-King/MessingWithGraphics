@@ -66,7 +66,7 @@ bool pointInPoly(Polygon &obj, Vec3<float> &point) {
 bool intersect(Polygon &obj, Ray primaryRay, Vec3<float> &pHit, float &dist) {
 	float denom = primaryRay.direction.dotProd(obj.normal);
 
-	if (denom > 1e-6) /*may need to fix for float point error*/ {
+	if (abs(denom) > 1e-6) /*may need to fix for float point error*/ {
 		float num = (obj.points[0] - primaryRay.startPoint).dotProd(obj.normal);
 		dist = num / denom;
 		pHit = primaryRay.startPoint + primaryRay.direction * dist; //May be deallocated and cause pointer issues
@@ -78,7 +78,7 @@ bool intersect(Polygon &obj, Ray primaryRay, Vec3<float> &pHit, float &dist) {
 
 void raytrace(Vec3<float> &camera, vector<Polygon> &objects, vector<PointLight> &lights) {
 	BMP output;
-	output.SetSize(640, 480);
+	output.SetSize(1280, 720);
 	output.SetBitDepth(24);
 
 	Vec3<float> currPixel;
@@ -88,22 +88,24 @@ void raytrace(Vec3<float> &camera, vector<Polygon> &objects, vector<PointLight> 
 	RGBApixel currColor;
 
 	//Viewing plane is 4x4 and 1 unit in front camera in the Z direction
-	for (int j = 0; j < 480; j++) {
-		for (int i = 0; i < 640; i++) {
+	for (int j = 0; j < 720; j++) {
+		for (int i = 0; i < 1280; i++) {
 			//Convert pixel coordinate in screen space to world space
-			currPixel = Vec3<float>(4.0 * i / 640 - 2, 2 - 4.0 * j / 480, 1);
+			currPixel = Vec3<float>(10.0 * i / 1280 - 5, 5 - 10.0 * j / 720, 1);
 			primaryRay.startPoint = camera;
 			primaryRay.direction = (currPixel - primaryRay.startPoint).normalize();
 			primaryRay.length = 100;
 
 			Vec3<float> pHit;
+			Vec3<float> currHit;
 			float currDist;
 			float minDist = INFINITY;
 			Polygon *hit = NULL;
 			for (int k = 0; k < objects.size(); k++) {
-				if (intersect(objects[k], primaryRay, pHit, currDist)) {
+				if (intersect(objects[k], primaryRay, currHit, currDist)) {
 					if (currDist < minDist) {
 						hit = &objects[k];
+						pHit = currHit;
 						minDist = currDist;
 					}
 				}
@@ -115,8 +117,10 @@ void raytrace(Vec3<float> &camera, vector<Polygon> &objects, vector<PointLight> 
 				bool shadowed = false;
 				for (int k = 0; k < objects.size(); k++) {
 					if (hit != &objects[k] && intersect(objects[k], shadowRay, pHit, currDist)) {
-						shadowed = true;
-						break;
+						if (currDist > 1e-6) {
+							shadowed = true;
+							break;
+						}
 					}
 				}
 
