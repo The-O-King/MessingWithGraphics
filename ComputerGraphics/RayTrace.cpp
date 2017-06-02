@@ -4,10 +4,34 @@
 #include "stdafx.h"
 #include <vector>
 #include <iostream>
+#include "Matrix44.h"
 #include "Vec3.h"
 #include "EasyBMP/EasyBMP.h"
 
 using namespace std;
+
+static Matrix44<float> rot45Y(1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1);
+
+//Rotation about Z axis
+//static Matrix44<float> rot45Y(.7071, -.7071, 0, 0,
+//	.7071, .7071, 0, 0,
+//	0, 0, 1, 0,
+//	0, 0, 0, 1);
+
+//Rotation about Y axis
+//static Matrix44<float> rot45Y(.7071, 0, .7071, 0,
+//	0, 1, 0, 0,
+//	-.7071, 0, .7071, 0,
+//	0, 0, 0, 1);
+
+//Rotation about X axis
+//static Matrix44<float> rot45Y(1, 0, 0, 0,
+//	0, .7071, -.7071, 0,
+//	0, .7071, .7071, 0,
+//	0, 0, 0, 1);
 
 struct Polygon {
 	vector<Vec3<float>> points; //topLeft, topRight, bottomLeft, bottomRight;

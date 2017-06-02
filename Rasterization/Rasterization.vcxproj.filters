@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\EasyBMP">
-      <UniqueIdentifier>{6f83f08c-656f-4506-904f-0dad66754967}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -27,22 +24,7 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vec3.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EasyBMP\EasyBMP.h">
-      <Filter>Source Files\EasyBMP</Filter>
-    </ClInclude>
-    <ClInclude Include="EasyBMP\EasyBMP_BMP.h">
-      <Filter>Source Files\EasyBMP</Filter>
-    </ClInclude>
-    <ClInclude Include="EasyBMP\EasyBMP_DataStructures.h">
-      <Filter>Source Files\EasyBMP</Filter>
-    </ClInclude>
-    <ClInclude Include="EasyBMP\EasyBMP_VariousBMPutilities.h">
-      <Filter>Source Files\EasyBMP</Filter>
-    </ClInclude>
-    <ClInclude Include="Matrix44.h">
+    <ClInclude Include="..\ComputerGraphics\Vec3.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -50,10 +32,7 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EasyBMP\EasyBMP.cpp">
-      <Filter>Source Files\EasyBMP</Filter>
-    </ClCompile>
-    <ClCompile Include="RayTrace.cpp">
+    <ClCompile Include="Rasterization.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

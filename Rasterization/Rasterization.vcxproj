@@ -19,11 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{54BDF90F-7DFC-4B19-B69E-A643B9D3A362}</ProjectGuid>
+    <ProjectGuid>{272E436F-A324-4D8B-9570-FC43657D6D18}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>ComputerGraphics</RootNamespace>
+    <RootNamespace>Rasterization</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>Ray Tracing</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -146,20 +145,12 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EasyBMP\EasyBMP.h" />
-    <ClInclude Include="EasyBMP\EasyBMP_BMP.h" />
-    <ClInclude Include="EasyBMP\EasyBMP_DataStructures.h" />
-    <ClInclude Include="EasyBMP\EasyBMP_VariousBMPutilities.h" />
-    <ClInclude Include="Matrix44.h" />
+    <ClInclude Include="..\ComputerGraphics\Vec3.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="Vec3.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RayTrace.cpp" />
-    <ClCompile Include="EasyBMP\EasyBMP.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="Rasterization.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -1,3 +1,7 @@
+// Adapted from Scratchapixel.com
+#ifndef VEC3_H
+#define VEC3_H
+
 #include <math.h>
 using namespace std;
 
@@ -48,3 +52,4 @@ public:
 		return s << '(' << v.x << ' ' << v.y << ' ' << v.z << ')';
 	}
 };
+#endif
